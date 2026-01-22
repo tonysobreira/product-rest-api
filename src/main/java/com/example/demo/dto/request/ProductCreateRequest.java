@@ -9,7 +9,7 @@ import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
-public class ProductCreateDTO {
+public class ProductCreateRequest {
 
 	@NotBlank
 	@Size(min = 2, max = 120)
@@ -34,10 +34,10 @@ public class ProductCreateDTO {
 	@NotNull
 	private Boolean active;
 
-	public ProductCreateDTO() {
+	public ProductCreateRequest() {
 	}
 
-	public ProductCreateDTO(@NotBlank @Size(min = 2, max = 120) String name, @Size(max = 500) String description,
+	public ProductCreateRequest(@NotBlank @Size(min = 2, max = 120) String name, @Size(max = 500) String description,
 			@NotNull @Min(0) Integer quantity,
 			@NotNull @DecimalMin(value = "0.0", inclusive = false) @Digits(integer = 10, fraction = 2) BigDecimal price,
 			@NotBlank @Size(max = 50) String sku, @NotNull Boolean active) {

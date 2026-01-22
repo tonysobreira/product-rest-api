@@ -7,7 +7,7 @@ import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.Size;
 
-public class ProductPatchDTO {
+public class ProductPatchRequest {
 
 	@Size(min = 2, max = 120)
 	private String name;
@@ -29,10 +29,10 @@ public class ProductPatchDTO {
 
 	private Long version;
 
-	public ProductPatchDTO() {
+	public ProductPatchRequest() {
 	}
 
-	public ProductPatchDTO(@Size(min = 2, max = 120) String name, @Size(max = 500) String description,
+	public ProductPatchRequest(@Size(min = 2, max = 120) String name, @Size(max = 500) String description,
 			@Min(0) Integer quantity,
 			@DecimalMin(value = "0.0", inclusive = false) @Digits(integer = 10, fraction = 2) BigDecimal price,
 			@Size(max = 50) String sku, Boolean active) {

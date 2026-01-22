@@ -16,10 +16,10 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.dto.request.ProductCreateDTO;
-import com.example.demo.dto.request.ProductPatchDTO;
-import com.example.demo.dto.request.ProductUpdateDTO;
-import com.example.demo.dto.response.ProductDTO;
+import com.example.demo.dto.request.ProductCreateRequest;
+import com.example.demo.dto.request.ProductPatchRequest;
+import com.example.demo.dto.request.ProductUpdateRequest;
+import com.example.demo.dto.response.ProductResponse;
 import com.example.demo.service.ProductService;
 
 import jakarta.validation.Valid;
@@ -35,24 +35,25 @@ public class ProductController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<ProductDTO>> findAllProducts() {
+	public ResponseEntity<List<ProductResponse>> findAllProducts() {
 		return ResponseEntity.ok(productService.findAllProducts());
 	}
 
 	@GetMapping("/{id}")
-	public ResponseEntity<ProductDTO> findById(@PathVariable Long id) {
+	public ResponseEntity<ProductResponse> findById(@PathVariable Long id) {
 		return ResponseEntity.ok(productService.findById(id));
 	}
 
 	@PostMapping
-	public ResponseEntity<ProductDTO> create(@Valid @RequestBody ProductCreateDTO dto) {
-		ProductDTO created = productService.createProduct(dto);
+	public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest request) {
+		ProductResponse created = productService.createProduct(request);
 		return ResponseEntity.created(URI.create("/products/" + created.getId())).body(created);
 	}
 
 	@PutMapping("/{id}")
-	public ResponseEntity<ProductDTO> update(@PathVariable Long id, @Valid @RequestBody ProductUpdateDTO dto) {
-		return ResponseEntity.ok(productService.updateProduct(id, dto));
+	public ResponseEntity<ProductResponse> update(@PathVariable Long id,
+			@Valid @RequestBody ProductUpdateRequest request) {
+		return ResponseEntity.ok(productService.updateProduct(id, request));
 	}
 
 	@DeleteMapping("/{id}")
@@ -62,8 +63,8 @@ public class ProductController {
 	}
 
 	@PatchMapping("/{id}")
-	public ResponseEntity<ProductDTO> patch(@PathVariable Long id, @RequestBody ProductPatchDTO dto) {
-		return ResponseEntity.ok(productService.patchProduct(id, dto));
+	public ResponseEntity<ProductResponse> patch(@PathVariable Long id, @RequestBody ProductPatchRequest request) {
+		return ResponseEntity.ok(productService.patchProduct(id, request));
 	}
 
 }

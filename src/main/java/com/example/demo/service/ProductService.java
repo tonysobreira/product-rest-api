@@ -5,10 +5,10 @@ import java.util.List;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import com.example.demo.dto.request.ProductCreateDTO;
-import com.example.demo.dto.request.ProductPatchDTO;
-import com.example.demo.dto.request.ProductUpdateDTO;
-import com.example.demo.dto.response.ProductDTO;
+import com.example.demo.dto.request.ProductCreateRequest;
+import com.example.demo.dto.request.ProductPatchRequest;
+import com.example.demo.dto.request.ProductUpdateRequest;
+import com.example.demo.dto.response.ProductResponse;
 import com.example.demo.exception.ProductNotFoundException;
 import com.example.demo.model.Product;
 import com.example.demo.repository.ProductRepository;
@@ -23,34 +23,35 @@ public class ProductService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ProductDTO> findAllProducts() {
-		return productRepository.findAll().stream().map(ProductDTO::new).toList();
+	public List<ProductResponse> findAllProducts() {
+		return productRepository.findAll().stream().map(ProductResponse::new).toList();
 	}
 
 	@Transactional(readOnly = true)
-	public ProductDTO findById(Long id) {
-		return productRepository.findById(id).map(ProductDTO::new).orElseThrow(() -> new ProductNotFoundException(id));
+	public ProductResponse findById(Long id) {
+		return productRepository.findById(id).map(ProductResponse::new)
+				.orElseThrow(() -> new ProductNotFoundException(id));
 	}
 
 	@Transactional
-	public ProductDTO createProduct(ProductCreateDTO dto) {
-		Product product = new Product(dto);
-		return new ProductDTO(productRepository.save(product));
+	public ProductResponse createProduct(ProductCreateRequest request) {
+		Product product = new Product(request);
+		return new ProductResponse(productRepository.save(product));
 	}
 
 	@Transactional
-	public ProductDTO updateProduct(Long id, ProductUpdateDTO dto) {
+	public ProductResponse updateProduct(Long id, ProductUpdateRequest request) {
 		Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
 		// Force optimistic locking check
-		if (!product.getVersion().equals(dto.getVersion())) {
+		if (!product.getVersion().equals(request.getVersion())) {
 			throw new org.springframework.dao.OptimisticLockingFailureException("Version mismatch");
 		}
 
-		product.setVersion(dto.getVersion());
+		product.setVersion(request.getVersion());
 
-		product.update(dto);
-		return new ProductDTO(product);
+		product.update(request);
+		return new ProductResponse(product);
 	}
 
 	@Transactional
@@ -62,18 +63,18 @@ public class ProductService {
 	}
 
 	@Transactional
-	public ProductDTO patchProduct(Long id, ProductPatchDTO dto) {
+	public ProductResponse patchProduct(Long id, ProductPatchRequest request) {
 		Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
 		// Force optimistic locking check
-		if (!product.getVersion().equals(dto.getVersion())) {
+		if (!product.getVersion().equals(request.getVersion())) {
 			throw new org.springframework.dao.OptimisticLockingFailureException("Version mismatch");
 		}
 
-		product.setVersion(dto.getVersion());
+		product.setVersion(request.getVersion());
 
-		product.patch(dto);
-		return new ProductDTO(product);
+		product.patch(request);
+		return new ProductResponse(product);
 	}
 
 }

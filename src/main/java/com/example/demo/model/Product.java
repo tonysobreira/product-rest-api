@@ -3,9 +3,9 @@ package com.example.demo.model;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
-import com.example.demo.dto.request.ProductCreateDTO;
-import com.example.demo.dto.request.ProductPatchDTO;
-import com.example.demo.dto.request.ProductUpdateDTO;
+import com.example.demo.dto.request.ProductCreateRequest;
+import com.example.demo.dto.request.ProductPatchRequest;
+import com.example.demo.dto.request.ProductUpdateRequest;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
@@ -74,7 +74,7 @@ public class Product {
 		this.active = Boolean.TRUE;
 	}
 
-	public Product(ProductCreateDTO dto) {
+	public Product(ProductCreateRequest dto) {
 		this.name = dto.getName();
 		this.description = dto.getDescription();
 		this.sku = dto.getSku();
@@ -83,7 +83,7 @@ public class Product {
 		this.active = dto.getActive();
 	}
 
-	public void update(ProductUpdateDTO dto) {
+	public void update(ProductUpdateRequest dto) {
 		this.name = dto.getName();
 		this.description = dto.getDescription();
 		this.sku = dto.getSku();
@@ -92,7 +92,7 @@ public class Product {
 		this.active = dto.getActive();
 	}
 
-	public void patch(ProductPatchDTO dto) {
+	public void patch(ProductPatchRequest dto) {
 		if (dto.getName() != null) {
 			this.name = dto.getName();
 		}

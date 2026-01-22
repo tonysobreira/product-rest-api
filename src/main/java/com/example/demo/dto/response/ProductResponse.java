@@ -4,8 +4,11 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.example.demo.model.Product;
+import com.fasterxml.jackson.annotation.JsonPropertyOrder;
 
-public class ProductDTO {
+@JsonPropertyOrder({ "id", "name", "description", "quantity", "quantity", "price", "sku", "active", "createdAt",
+		"updatedAt", "version" })
+public class ProductResponse {
 
 	private Long id;
 
@@ -27,10 +30,10 @@ public class ProductDTO {
 
 	private Long version;
 
-	public ProductDTO() {
+	public ProductResponse() {
 	}
 
-	public ProductDTO(Product product) {
+	public ProductResponse(Product product) {
 		this.id = product.getId();
 		this.name = product.getName();
 		this.description = product.getDescription();

@@ -1,22 +1,20 @@
 package com.example.demo.security.service;
 
+import java.security.SecureRandom;
 import java.time.Instant;
-import java.util.Collection;
-import java.util.UUID;
+import java.util.Base64;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.GrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.example.demo.exception.InvalidRefreshTokenException;
 import com.example.demo.security.dto.LoginRequest;
 import com.example.demo.security.dto.RegisterRequest;
 import com.example.demo.security.dto.TokenResponse;
@@ -25,6 +23,7 @@ import com.example.demo.security.model.RefreshToken;
 import com.example.demo.security.model.Role;
 import com.example.demo.security.repository.RefreshTokenRepository;
 import com.example.demo.security.repository.UserRepository;
+import com.example.demo.util.TokenHashing;
 
 @Service
 public class AuthService {
@@ -75,82 +74,77 @@ public class AuthService {
 
 	@Transactional
 	public TokenResponse login(LoginRequest req) {
-		log.info("Login attempt for username='{}'", req.username());
+		log.info("Auth: login attempt username='{}'", req.username());
 
 		try {
-			Authentication auth = authManager
-					.authenticate(new UsernamePasswordAuthenticationToken(req.username(), req.password()));
-
-			UserDetails principal = (UserDetails) auth.getPrincipal();
-			log.info("Username='{}'", principal.getUsername());
-
-			Collection<? extends GrantedAuthority> authorities = auth.getAuthorities();
-			log.info("Authorities='{}'", authorities);
+			authManager.authenticate(new UsernamePasswordAuthenticationToken(req.username(), req.password()));
 		} catch (AuthenticationException ex) {
-			log.warn("Login failed for username='{}'", req.username());
+			log.warn("Auth: login failed username='{}'", req.username());
 			throw ex;
 		}
 
-		AppUser user = userRepo.findByUsername(req.username()).orElseThrow(() -> {
-			log.error("Authenticated user not found in database: {}", req.username());
-			return new IllegalStateException("User not found after authentication");
-		});
+		AppUser user = userRepo.findByUsername(req.username()).orElseThrow();
 
 		String access = jwtService.generateAccessToken(user.getUsername(),
 				user.getRoles().stream().map(Enum::name).toList());
-
 		String refresh = createRefreshToken(user);
 
-		log.info("Login successful for username='{}'", user.getUsername());
-
+		log.info("Auth: login success username='{}'", user.getUsername());
 		return new TokenResponse(access, refresh);
 	}
 
 	@Transactional
-	public TokenResponse refresh(String refreshToken) {
-		log.info("Refresh token request");
+	public TokenResponse refresh(String rawRefreshToken) {
+		log.info("Auth: refresh attempt");
 
-		RefreshToken rt = refreshRepo.findByToken(refreshToken).orElseThrow(() -> {
-			log.warn("Invalid refresh token used");
-			return new IllegalArgumentException("Invalid refresh token");
+		String hash = TokenHashing.sha256Hex(rawRefreshToken);
+		RefreshToken rt = refreshRepo.findByTokenHash(hash).orElseThrow(() -> {
+			log.warn("Auth: refresh failed (invalid token)");
+			return new InvalidRefreshTokenException("Invalid refresh token");
 		});
 
 		if (rt.isRevoked() || rt.getExpiresAt().isBefore(Instant.now())) {
-			log.warn("Expired or revoked refresh token for user '{}'", rt.getUser().getUsername());
-			throw new IllegalArgumentException("Refresh token expired or revoked");
+			log.warn("Auth: refresh failed (revoked/expired) user='{}'", rt.getUser().getUsername());
+			throw new InvalidRefreshTokenException("Refresh token expired or revoked");
 		}
 
-		// rotation
 		rt.setRevoked(true);
 
 		AppUser user = rt.getUser();
-
 		String newAccess = jwtService.generateAccessToken(user.getUsername(),
 				user.getRoles().stream().map(Enum::name).toList());
-
 		String newRefresh = createRefreshToken(user);
 
-		log.info("Refresh token rotated for user '{}'", user.getUsername());
-
+		log.info("Auth: refresh success user='{}'", user.getUsername());
 		return new TokenResponse(newAccess, newRefresh);
 	}
 
 	@Transactional
-	public void logout(String refreshToken) {
-		refreshRepo.findByToken(refreshToken).ifPresentOrElse(rt -> {
+	public void logout(String rawRefreshToken) {
+		String hash = TokenHashing.sha256Hex(rawRefreshToken);
+		refreshRepo.findByTokenHash(hash).ifPresentOrElse(rt -> {
 			rt.setRevoked(true);
-			log.info("User '{}' logged out", rt.getUser().getUsername());
-		}, () -> log.warn("Logout attempt with invalid refresh token"));
+			log.info("Auth: logout user='{}'", rt.getUser().getUsername());
+		}, () -> log.warn("Auth: logout attempt with invalid token"));
 	}
 
 	private String createRefreshToken(AppUser user) {
+		String raw = generateRefreshTokenValue();
+
 		RefreshToken rt = new RefreshToken();
 		rt.setUser(user);
-		rt.setToken(UUID.randomUUID().toString() + "." + UUID.randomUUID()); // simple opaque token
+		rt.setTokenHash(TokenHashing.sha256Hex(raw));
 		rt.setExpiresAt(Instant.now().plusMillis(refreshExpMs));
 		rt.setRevoked(false);
+
 		refreshRepo.save(rt);
-		return rt.getToken();
+		return raw; // return ONLY to the client
+	}
+
+	private String generateRefreshTokenValue() {
+		byte[] bytes = new byte[64];
+		new SecureRandom().nextBytes(bytes);
+		return Base64.getUrlEncoder().withoutPadding().encodeToString(bytes);
 	}
 
 }

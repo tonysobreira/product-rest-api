@@ -1,7 +1,9 @@
 package com.example.demo.service;
 
-import java.util.List;
+import java.util.Objects;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -9,6 +11,7 @@ import com.example.demo.dto.request.ProductCreateRequest;
 import com.example.demo.dto.request.ProductPatchRequest;
 import com.example.demo.dto.request.ProductUpdateRequest;
 import com.example.demo.dto.response.ProductResponse;
+import com.example.demo.exception.ConflictException;
 import com.example.demo.exception.ProductNotFoundException;
 import com.example.demo.model.Product;
 import com.example.demo.repository.ProductRepository;
@@ -23,8 +26,8 @@ public class ProductService {
 	}
 
 	@Transactional(readOnly = true)
-	public List<ProductResponse> findAllProducts() {
-		return productRepository.findAll().stream().map(ProductResponse::new).toList();
+	public Page<ProductResponse> findAllProducts(Pageable pageable) {
+		return productRepository.findAll(pageable).map(ProductResponse::new);
 	}
 
 	@Transactional(readOnly = true)
@@ -35,6 +38,10 @@ public class ProductService {
 
 	@Transactional
 	public ProductResponse createProduct(ProductCreateRequest request) {
+		if (productRepository.existsBySku(request.getSku())) {
+			throw new ConflictException("SKU already exists: " + request.getSku());
+		}
+
 		Product product = new Product(request);
 		return new ProductResponse(productRepository.save(product));
 	}
@@ -43,12 +50,15 @@ public class ProductService {
 	public ProductResponse updateProduct(Long id, ProductUpdateRequest request) {
 		Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
+		// only if sku is allowed to change:
+		if (!product.getSku().equals(request.getSku()) && productRepository.existsBySku(request.getSku())) {
+			throw new ConflictException("SKU already exists: " + request.getSku());
+		}
+
 		// Force optimistic locking check
 		if (!product.getVersion().equals(request.getVersion())) {
 			throw new org.springframework.dao.OptimisticLockingFailureException("Version mismatch");
 		}
-
-		product.setVersion(request.getVersion());
 
 		product.update(request);
 		return new ProductResponse(product);
@@ -66,12 +76,11 @@ public class ProductService {
 	public ProductResponse patchProduct(Long id, ProductPatchRequest request) {
 		Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
-		// Force optimistic locking check
-		if (!product.getVersion().equals(request.getVersion())) {
-			throw new org.springframework.dao.OptimisticLockingFailureException("Version mismatch");
+		// optimistic check (don’t set version manually)
+		if (!Objects.equals(product.getVersion(), request.getVersion())) {
+			throw new ConflictException(
+					"Version mismatch. Current=" + product.getVersion() + ", Provided=" + request.getVersion());
 		}
-
-		product.setVersion(request.getVersion());
 
 		product.patch(request);
 		return new ProductResponse(product);

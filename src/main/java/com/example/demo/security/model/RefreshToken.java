@@ -16,8 +16,9 @@ public class RefreshToken {
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	private Long id;
 
-	@Column(nullable = false, unique = true, length = 200)
-	private String token;
+	// hex SHA-256 (64 chars)
+	@Column(nullable = false, unique = true, length = 64)
+	private String tokenHash;
 
 	@ManyToOne(optional = false)
 	private AppUser user;
@@ -39,12 +40,12 @@ public class RefreshToken {
 		this.id = id;
 	}
 
-	public String getToken() {
-		return token;
+	public String getTokenHash() {
+		return tokenHash;
 	}
 
-	public void setToken(String token) {
-		this.token = token;
+	public void setTokenHash(String tokenHash) {
+		this.tokenHash = tokenHash;
 	}
 
 	public AppUser getUser() {

@@ -1,8 +1,11 @@
 package com.example.demo.controller;
 
 import java.net.URI;
-import java.util.List;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.domain.Sort;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -36,8 +39,9 @@ public class ProductController {
 	}
 
 	@GetMapping
-	public ResponseEntity<List<ProductResponse>> findAllProducts() {
-		return ResponseEntity.ok(productService.findAllProducts());
+	public ResponseEntity<Page<ProductResponse>> findAllProducts(
+			@PageableDefault(size = 10, sort = "id", direction = Sort.Direction.ASC) Pageable pageable) {
+		return ResponseEntity.ok(productService.findAllProducts(pageable));
 	}
 
 	@GetMapping("/{id}")
@@ -49,7 +53,7 @@ public class ProductController {
 	@PostMapping
 	public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest request) {
 		ProductResponse created = productService.createProduct(request);
-		return ResponseEntity.created(URI.create("/products/" + created.getId())).body(created);
+		return ResponseEntity.created(URI.create("/api/v1/products/" + created.getId())).body(created);
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")
@@ -68,7 +72,8 @@ public class ProductController {
 
 	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{id}")
-	public ResponseEntity<ProductResponse> patch(@PathVariable Long id, @RequestBody ProductPatchRequest request) {
+	public ResponseEntity<ProductResponse> patch(@PathVariable Long id,
+			@Valid @RequestBody ProductPatchRequest request) {
 		return ResponseEntity.ok(productService.patchProduct(id, request));
 	}
 

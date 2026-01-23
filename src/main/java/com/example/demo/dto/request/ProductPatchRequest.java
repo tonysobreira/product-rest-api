@@ -5,6 +5,7 @@ import java.math.BigDecimal;
 import jakarta.validation.constraints.DecimalMin;
 import jakarta.validation.constraints.Digits;
 import jakarta.validation.constraints.Min;
+import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
 
 public class ProductPatchRequest {
@@ -27,6 +28,7 @@ public class ProductPatchRequest {
 
 	private Boolean active;
 
+	@NotNull
 	private Long version;
 
 	public ProductPatchRequest() {

@@ -5,6 +5,7 @@ import java.util.List;
 
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PatchMapping;
@@ -44,24 +45,28 @@ public class ProductController {
 		return ResponseEntity.ok(productService.findById(id));
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@PostMapping
 	public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest request) {
 		ProductResponse created = productService.createProduct(request);
 		return ResponseEntity.created(URI.create("/products/" + created.getId())).body(created);
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@PutMapping("/{id}")
 	public ResponseEntity<ProductResponse> update(@PathVariable Long id,
 			@Valid @RequestBody ProductUpdateRequest request) {
 		return ResponseEntity.ok(productService.updateProduct(id, request));
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@DeleteMapping("/{id}")
 	@ResponseStatus(HttpStatus.NO_CONTENT)
 	public void delete(@PathVariable Long id) {
 		productService.deleteProduct(id);
 	}
 
+	@PreAuthorize("hasRole('ADMIN')")
 	@PatchMapping("/{id}")
 	public ResponseEntity<ProductResponse> patch(@PathVariable Long id, @RequestBody ProductPatchRequest request) {
 		return ResponseEntity.ok(productService.patchProduct(id, request));

@@ -74,42 +74,42 @@ public class Product {
 		this.active = Boolean.TRUE;
 	}
 
-	public Product(ProductCreateRequest dto) {
-		this.name = dto.getName();
-		this.description = dto.getDescription();
-		this.sku = dto.getSku();
-		this.price = dto.getPrice();
-		this.quantity = dto.getQuantity();
-		this.active = dto.getActive();
+	public Product(ProductCreateRequest request) {
+		this.name = request.name();
+		this.description = request.description();
+		this.sku = request.sku();
+		this.price = request.price();
+		this.quantity = request.quantity();
+		this.active = request.active();
 	}
 
-	public void update(ProductUpdateRequest dto) {
-		this.name = dto.getName();
-		this.description = dto.getDescription();
-		this.sku = dto.getSku();
-		this.price = dto.getPrice();
-		this.quantity = dto.getQuantity();
-		this.active = dto.getActive();
+	public void update(ProductUpdateRequest request) {
+		this.name = request.name();
+		this.description = request.description();
+		this.sku = request.sku();
+		this.price = request.price();
+		this.quantity = request.quantity();
+		this.active = request.active();
 	}
 
-	public void patch(ProductPatchRequest dto) {
-		if (dto.getName() != null) {
-			this.name = dto.getName();
+	public void patch(ProductPatchRequest request) {
+		if (request.name() != null) {
+			this.name = request.name();
 		}
-		if (dto.getDescription() != null) {
-			this.description = dto.getDescription();
+		if (request.description() != null) {
+			this.description = request.description();
 		}
-		if (dto.getQuantity() != null) {
-			this.quantity = dto.getQuantity();
+		if (request.quantity() != null) {
+			this.quantity = request.quantity();
 		}
-		if (dto.getPrice() != null) {
-			this.price = dto.getPrice();
+		if (request.price() != null) {
+			this.price = request.price();
 		}
-		if (dto.getSku() != null) {
-			this.sku = dto.getSku();
+		if (request.sku() != null) {
+			this.sku = request.sku();
 		}
-		if (dto.getActive() != null) {
-			this.active = dto.getActive();
+		if (request.active() != null) {
+			this.active = request.active();
 		}
 	}
 

@@ -27,23 +27,23 @@ public class ProductService {
 
 	@Transactional(readOnly = true)
 	public Page<ProductResponse> findAllProducts(Pageable pageable) {
-		return productRepository.findAll(pageable).map(ProductResponse::new);
+		return productRepository.findAll(pageable).map(ProductResponse::from);
 	}
 
 	@Transactional(readOnly = true)
 	public ProductResponse findById(Long id) {
-		return productRepository.findById(id).map(ProductResponse::new)
+		return productRepository.findById(id).map(ProductResponse::from)
 				.orElseThrow(() -> new ProductNotFoundException(id));
 	}
 
 	@Transactional
 	public ProductResponse createProduct(ProductCreateRequest request) {
-		if (productRepository.existsBySku(request.getSku())) {
-			throw new ConflictException("SKU already exists: " + request.getSku());
+		if (productRepository.existsBySku(request.sku())) {
+			throw new ConflictException("SKU already exists: " + request.sku());
 		}
 
 		Product product = new Product(request);
-		return new ProductResponse(productRepository.save(product));
+		return ProductResponse.from(productRepository.save(product));
 	}
 
 	@Transactional
@@ -51,17 +51,18 @@ public class ProductService {
 		Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
 		// only if sku is allowed to change:
-		if (!product.getSku().equals(request.getSku()) && productRepository.existsBySku(request.getSku())) {
-			throw new ConflictException("SKU already exists: " + request.getSku());
+		if (!product.getSku().equals(request.sku()) && productRepository.existsBySku(request.sku())) {
+			throw new ConflictException("SKU already exists: " + request.sku());
 		}
 
 		// Force optimistic locking check
-		if (!product.getVersion().equals(request.getVersion())) {
-			throw new org.springframework.dao.OptimisticLockingFailureException("Version mismatch");
+		if (!Objects.equals(product.getVersion(), request.version())) {
+			throw new ConflictException(
+					"Version mismatch. Current=" + product.getVersion() + ", Provided=" + request.version());
 		}
 
 		product.update(request);
-		return new ProductResponse(product);
+		return ProductResponse.from(product);
 	}
 
 	@Transactional
@@ -77,13 +78,13 @@ public class ProductService {
 		Product product = productRepository.findById(id).orElseThrow(() -> new ProductNotFoundException(id));
 
 		// optimistic check (don’t set version manually)
-		if (!Objects.equals(product.getVersion(), request.getVersion())) {
+		if (!Objects.equals(product.getVersion(), request.version())) {
 			throw new ConflictException(
-					"Version mismatch. Current=" + product.getVersion() + ", Provided=" + request.getVersion());
+					"Version mismatch. Current=" + product.getVersion() + ", Provided=" + request.version());
 		}
 
 		product.patch(request);
-		return new ProductResponse(product);
+		return ProductResponse.from(product);
 	}
 
 }

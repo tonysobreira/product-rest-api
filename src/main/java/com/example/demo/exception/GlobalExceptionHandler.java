@@ -1,5 +1,6 @@
 package com.example.demo.exception;
 
+import java.time.LocalDateTime;
 import java.util.HashMap;
 import java.util.Map;
 
@@ -59,6 +60,12 @@ public class GlobalExceptionHandler {
 		// Example: unique constraint violations (SKU, username)
 		return ResponseEntity.status(HttpStatus.CONFLICT)
 				.body(Map.of("error", "CONFLICT", "message", "Resource already exists or violates constraints"));
+	}
+
+	@ExceptionHandler(ProductNotFoundException.class)
+	public ResponseEntity<Map<String, Object>> handleProductNotFound(ProductNotFoundException ex) {
+		return ResponseEntity.status(HttpStatus.NOT_FOUND).body(Map.of("error", "Product not found", "message",
+				ex.getMessage(), "status", HttpStatus.NOT_FOUND.value(), "timestamp", LocalDateTime.now()));
 	}
 
 }

@@ -53,7 +53,7 @@ public class ProductController {
 	@PostMapping
 	public ResponseEntity<ProductResponse> create(@Valid @RequestBody ProductCreateRequest request) {
 		ProductResponse created = productService.createProduct(request);
-		return ResponseEntity.created(URI.create("/api/v1/products/" + created.getId())).body(created);
+		return ResponseEntity.created(URI.create("/api/v1/products/" + created.id())).body(created);
 	}
 
 	@PreAuthorize("hasRole('ADMIN')")

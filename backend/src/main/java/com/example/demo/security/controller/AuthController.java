@@ -7,10 +7,10 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import com.example.demo.security.dto.LoginRequest;
-import com.example.demo.security.dto.RefreshRequest;
-import com.example.demo.security.dto.RegisterRequest;
-import com.example.demo.security.dto.TokenResponse;
+import com.example.demo.security.dto.request.LoginRequest;
+import com.example.demo.security.dto.request.RefreshRequest;
+import com.example.demo.security.dto.request.RegisterRequest;
+import com.example.demo.security.dto.response.TokenResponse;
 import com.example.demo.security.service.AuthService;
 
 import jakarta.validation.Valid;

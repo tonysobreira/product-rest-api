@@ -1,4 +1,4 @@
-package com.example.demo.security.dto;
+package com.example.demo.security.dto.request;
 
 import jakarta.validation.constraints.NotBlank;
 

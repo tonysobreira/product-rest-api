@@ -15,9 +15,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.example.demo.exception.InvalidRefreshTokenException;
-import com.example.demo.security.dto.LoginRequest;
-import com.example.demo.security.dto.RegisterRequest;
-import com.example.demo.security.dto.TokenResponse;
+import com.example.demo.security.dto.request.LoginRequest;
+import com.example.demo.security.dto.request.RegisterRequest;
+import com.example.demo.security.dto.response.TokenResponse;
 import com.example.demo.security.model.AppUser;
 import com.example.demo.security.model.RefreshToken;
 import com.example.demo.security.model.Role;
